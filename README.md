@@ -886,7 +886,7 @@ QQ 那侧的真实收发在测试里用一个本地假 OneBot 服务器验证（
 
    ```
    Use this token to access the HTTP API:
-   123456789:AAExampleTokenThatShouldNotBeShared
+   数字:字母
    ```
 
    这一长串就是**机器人令牌（Bot Token）**。
