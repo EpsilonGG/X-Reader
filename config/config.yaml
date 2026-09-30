@@ -1,0 +1,177 @@
+# X-Reader runtime configuration.
+#
+# Account list lives in accounts.yaml (project root) — never hardcode accounts.
+
+provider:
+  # Providers are tried in this order for every account, and for each provider
+  # every route is tried in the order the provider declares. The first
+  # provider+route combination that yields at least one parsed tweet wins.
+  #
+  # 'nitter' is X-Reader's own provider and is always available.
+  # 'xtf'    is the x-tweet-fetcher adapter; it only activates when the
+  #          x-tweet-fetcher package is importable. If it is missing, X-Reader
+  #          still runs normally (no hard dependency on the reference project).
+  order:
+    - nitter
+    - xtf
+
+  nitter:
+    # Public Nitter instances, tried in order with failover. Endpoints are
+    # whitespace-stripped during validation.
+    endpoints:
+      - https://nitter.poast.org
+      - https://xcancel.com
+      - https://nitter.net
+      - https://nitter.no-logs.com
+      - https://nitter.privacydev.net
+      - https://nitter.tiekoetter.com
+      - https://nitter.privacyredirect.com
+      - https://nuku.trabun.org
+      - https://nitter.meowing.monster
+      - https://nitter.xitter.cc
+      - https://nitter.jaydenha.uk
+      - https://x.n0g.xyz
+      - https://tw.eir-nya.gay
+
+    # Routes tried per instance:
+    #   rss  -> GET /{username}/rss   (small, machine-readable, absolute dates)
+    #   html -> GET /{username}       (richer: retweet / reply / quote / stats)
+    routes:
+      - rss
+      - html
+
+  xtf:
+    enabled: true
+    # Empty means: reuse provider.nitter.endpoints (single source of truth).
+    instances: []
+    # x-tweet-fetcher reaches timelines through search rather than /{username};
+    # this route is kept distinct so it stays an additive fallback.
+    route: search
+
+http:
+  timeout: 20
+  # Retries only apply to transient failures (timeouts, 429, 5xx).
+  retries: 1
+
+fetch:
+  # Maximum tweets kept per X account per run (newest first, after parsing).
+  # It is a safety cap for Nitter's "roughly one page per request" behaviour.
+  #
+  # It deliberately does NOT apply to RSS sources: a feed arrives as one complete
+  # document, so there is no pagination to guard against and a cap could only
+  # discard real content. See `app/runner.py` and `docs/ARCHITECTURE.md` §15.11.
+  limit: 20
+
+storage:
+  data_dir: data
+  # Raw response body capture:
+  #   never    -> only the parsed item records are stored (smallest repo)
+  #   on_error -> capture the body when a provider/route fails or parses to
+  #               zero records (bounded, high debugging value) [default]
+  #   always   -> capture every response (best for re-parsing, largest repo)
+  store_raw_response: on_error
+
+# Telegram delivery. Off by default: with `enabled: false` X-Reader fetches and
+# stores and stops, which is a complete configuration, not a degraded one.
+#
+# The block holds only the NAMES of the environment variables that carry the two
+# secrets. The values themselves must never appear here — this file is committed.
+# Put them in the environment:
+#
+#   locally:  $env:TELEGRAM_BOT_TOKEN = "..."   # PowerShell
+#             $env:TELEGRAM_CHAT_ID   = "..."
+#   in CI:    Settings -> Secrets and variables -> Actions -> New repository
+#             secret, named TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
+#
+# `bot_token_env` / `chat_id_env` exist so a deployment can rename the variables
+# without touching code. An unknown key in this block is a start-up error, which
+# is deliberate: it turns "I put my token in config.yaml and it was ignored" into
+# a message you can act on, and makes committing a secret impossible.
+telegram:
+  enabled: false
+  bot_token_env: TELEGRAM_BOT_TOKEN
+  chat_id_env: TELEGRAM_CHAT_ID
+
+# QQ delivery, over the OneBot HTTP API. Off by default and independent of
+# Telegram: either, both or neither can be enabled, and each keeps its own
+# delivery state, so one can be down while the other keeps working.
+#
+# X-Reader is a *client* of OneBot — it posts one HTTP request per message to a
+# OneBot implementation you already run. It is not the official QQ bot API, it is
+# not a QQ SDK, and it is not a bot server: no WebSocket, no resident process.
+#
+# Four things that are easy to confuse, named apart:
+#
+#   group_id          WHERE the message goes. A number, not a secret.
+#   api_base          WHERE OneBot listens. Not a secret.
+#   access_token_env  the NAME of the env var holding the OneBot access token.
+#   the GitHub Secret the VALUE behind that name.
+#
+# The two non-secrets belong here; the token never does. This file is committed,
+# and an unknown key in this block is a start-up error, so a token pasted here
+# fails loudly instead of being silently ignored.
+#
+#   locally:  $env:ONEBOT_ACCESS_TOKEN = "..."   # PowerShell
+#   in CI:    repository secret named ONEBOT_ACCESS_TOKEN
+#
+# The token is OPTIONAL. A OneBot with no access token configured is a normal
+# setup; leave `access_token_env` as it is and simply do not define the variable.
+qq:
+  enabled: false
+  api_base: "http://127.0.0.1:3000"
+  group_id: ""
+  access_token_env: ONEBOT_ACCESS_TOKEN
+  timeout: 20
+
+# External RSS/Atom feeds, in their own configuration space. An RSS source is
+# not an X account and is never modelled as one.
+#
+# This list is intentionally empty: a real URL must be supplied by the operator,
+# and a placeholder would make `python main.py` try to fetch example.com. Add
+# entries like this:
+#
+# rss_sources:
+#   - id: visualnovel-interview          # identity namespace; explicit, stable,
+#     url: "https://example.com/interview.xml"   # never derived from a name
+#     enabled: true
+#   - id: another-source
+#     url: "https://example.com/feed.xml"
+#     enabled: true
+#
+# Rules that matter (freeze v3 section 6):
+#   * `id` is the namespace of every item the feed produces. Changing it later
+#     re-identifies the entire feed, so pick it once.
+#   * `id` must be a lowercase slug and must not be `x` or `youtube`.
+#   * the feed may be RSS 2.0 or Atom; it is parsed generically, with no
+#     site-specific rules anywhere in X-Reader.
+#
+# Note on re-parseability: X keeps a dedicated raw record archive under
+# `data/accounts/`, but RSS records do not (there is no raw shape to freeze until
+# a real feed is in play). If you need to re-normalize RSS items without
+# refetching, set `store_raw_response: always` above.
+rss_sources: []
+
+# YouTube channels, in their own configuration space again — a channel is not a
+# feed URL and not an X account.
+#
+# This list is intentionally empty: a real channel id must be supplied by the
+# operator. Add entries like this:
+#
+# youtube_channels:
+#   - channel_id: UCabcdefghijklmnopqrstuv   # the UC... id, not a @handle
+#     enabled: true
+#   - channel_id: UCzyxwvutsrqponmlkjihgfe
+#     url: "https://example.com/mirror.xml"  # optional override
+#     enabled: false
+#
+# Rules that matter:
+#   * `channel_id` is the identity namespace (`source_id = youtube:<channel_id>`)
+#     and is used to build the feed URL, so it must be the stable UC... id. A
+#     display name or an @handle can be renamed at any time and would fork every
+#     stored item the moment you renamed the channel.
+#   * no API key and no quota are involved: the provider reads the public Atom
+#     feed at https://www.youtube.com/feeds/videos.xml?channel_id=...
+#   * `url` exists only for a self-hosted mirror. Leave it out and it is
+#     generated from `channel_id`, so there is one value to get right, not two.
+#   * duplicate channel ids are rejected at load time.
+youtube_channels: []

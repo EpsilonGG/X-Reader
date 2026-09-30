@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCzyxwvutsrqponmlkjihgfe"/>
+ <id>yt:channel:UCzyxwvutsrqponmlkjihgfe</id>
+ <yt:channelId>UCzyxwvutsrqponmlkjihgfe</yt:channelId>
+ <title>Another Channel</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UCzyxwvutsrqponmlkjihgfe"/>
+ <author>
+  <name>Another Channel</name>
+  <uri>https://www.youtube.com/channel/UCzyxwvutsrqponmlkjihgfe</uri>
+ </author>
+ <published>2015-01-01T00:00:00+00:00</published>
+ <entry>
+  <id>yt:video:zzzzzzzzzzz</id>
+  <yt:videoId>zzzzzzzzzzz</yt:videoId>
+  <yt:channelId>UCzyxwvutsrqponmlkjihgfe</yt:channelId>
+  <title>Other Channel Video</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=zzzzzzzzzzz"/>
+  <author>
+   <name>Another Channel</name>
+   <uri>https://www.youtube.com/channel/UCzyxwvutsrqponmlkjihgfe</uri>
+  </author>
+  <published>2026-09-25T12:00:00+00:00</published>
+  <updated>2026-09-25T12:00:00+00:00</updated>
+  <media:group>
+   <media:title>Other Channel Video</media:title>
+   <media:content url="https://www.youtube.com/v/zzzzzzzzzzz?version=3" type="application/x-shockwave-flash" width="640" height="390" duration="60"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/zzzzzzzzzzz/hqdefault.jpg" width="480" height="360"/>
+   <media:description>From the other channel.</media:description>
+   <media:community>
+    <media:statistics views="7"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jack | Nitter</title>
+</head>
+<body>
+<div class="container">
+  <div class="timeline">
+
+    <!-- 1. Pinned tweet: absolute date, image, all four counters populated. -->
+    <div class="timeline-item" data-username="jack">
+      <div class="timeline-item-header">
+        <div class="pinned"><span class="icon-pin"></span>Pinned Tweet</div>
+      </div>
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/jack/status/1000000000000000001#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="jack" href="/jack">jack</a>
+            <a class="username" title="@jack" href="/jack">@jack</a>
+            <span class="tweet-date"><a href="/jack/status/1000000000000000001#m" title="Sep 11, 2024 · 7:31 PM UTC">Sep 11, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">just setting up my twttr &amp; nothing else</div>
+        <div class="attachments">
+          <a class="still-image" href="/pic/orig/media%2FCNq2BQMWIAESvuO.jpg">
+            <img src="/pic/media%2FCNq2BQMWIAESvuO.jpg" alt="image">
+          </a>
+        </div>
+        <div class="tweet-stats">
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-comment"></span></div>1,234</span>
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet"></span></div>5,678</span>
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-heart"></span></div>9,012</span>
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-views"></span></div>345,678</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Retweet: header carries "X retweeted", which must be stripped. -->
+    <div class="timeline-item" data-username="OpenAI">
+      <div class="retweet-header"><span class="icon-retweet"></span> jack retweeted</div>
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/OpenAI/status/1000000000000000002#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="OpenAI" href="/OpenAI">OpenAI</a>
+            <a class="username" title="@OpenAI" href="/OpenAI">@OpenAI</a>
+            <span class="tweet-date"><a href="/OpenAI/status/1000000000000000002#m" title="Sep 10, 2024 · 3:05 PM UTC">Sep 10, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">Introducing something new.</div>
+      </div>
+    </div>
+
+    <!-- 3. Reply: replying-to anchor identifies the parent handle. -->
+    <div class="timeline-item" data-username="AnthropicAI">
+      <div class="tweet-body">
+        <div class="replying-to">Replying to <a href="/elonmusk">@elonmusk</a></div>
+        <div class="tweet-header">
+          <a class="tweet-link" href="/AnthropicAI/status/1000000000000000003#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="Anthropic" href="/AnthropicAI">Anthropic</a>
+            <a class="username" title="@AnthropicAI" href="/AnthropicAI">@AnthropicAI</a>
+            <span class="tweet-date"><a href="/AnthropicAI/status/1000000000000000003#m" title="Sep 9, 2024 · 6:45 PM UTC">Sep 9, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">Thanks for the question.</div>
+      </div>
+    </div>
+
+    <!-- 4. Quote tweet. The nested quote block contains its own media and its
+         own stats; neither may leak into the outer record. The outer views
+         span is deliberately empty, which must become None (not 0). -->
+    <div class="timeline-item" data-username="AnthropicAI">
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/AnthropicAI/status/1000000000000000004#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="Anthropic" href="/AnthropicAI">Anthropic</a>
+            <a class="username" title="@AnthropicAI" href="/AnthropicAI">@AnthropicAI</a>
+            <span class="tweet-date"><a href="/AnthropicAI/status/1000000000000000004#m" title="Sep 8, 2024 · 2:00 PM UTC">Sep 8, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">Worth reading.</div>
+        <div class="quote quote-big">
+          <a class="quote-link" href="/someoneelse/status/1000000000000000099#m"></a>
+          <div class="quote-header">
+            <a class="fullname" title="Someone Else" href="/someoneelse">Someone Else</a>
+            <a class="username" title="@someoneelse" href="/someoneelse">@someoneelse</a>
+            <span class="tweet-date"><a href="/someoneelse/status/1000000000000000099#m" title="Sep 7, 2024 · 1:00 PM UTC">Sep 7, 2024</a></span>
+          </div>
+          <div class="quote-text">The quoted body text.</div>
+          <div class="attachments">
+            <a class="still-image" href="/pic/orig/media%2FQUOTEDMEDIA.jpg">
+              <img src="/pic/media%2FQUOTEDMEDIA.jpg" alt="quoted image">
+            </a>
+          </div>
+          <div class="tweet-stats">
+            <span class="tweet-stat"><div class="icon-container"><span class="icon-heart"></span></div>999</span>
+          </div>
+        </div>
+        <div class="tweet-stats">
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-comment"></span></div>7</span>
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-heart"></span></div>42</span>
+          <span class="tweet-stat"><div class="icon-container"><span class="icon-views"></span></div></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Video attachment, poster kept as thumbnail. -->
+    <div class="timeline-item" data-username="OpenAI">
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/OpenAI/status/1000000000000000005#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="OpenAI" href="/OpenAI">OpenAI</a>
+            <a class="username" title="@OpenAI" href="/OpenAI">@OpenAI</a>
+            <span class="tweet-date"><a href="/OpenAI/status/1000000000000000005#m" title="Sep 6, 2024 · 9:00 AM UTC">Sep 6, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">A short clip.</div>
+        <div class="attachments">
+          <div class="video-container">
+            <video class="video" poster="/pic/pbs.twimg.com%2Famplify_video_thumb%2FTHUMBNAIL.jpg" controls>
+              <source src="/pic/video.twimg.com%2Ftweet_video%2FHD-Yd7eXMAE3fsX.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Animated GIF: a <video> wrapped in div.attachments.media-gif. -->
+    <div class="timeline-item" data-username="jack">
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/jack/status/1000000000000000006#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="jack" href="/jack">jack</a>
+            <a class="username" title="@jack" href="/jack">@jack</a>
+            <span class="tweet-date"><a href="/jack/status/1000000000000000006#m" title="Sep 5, 2024 · 8:15 AM UTC">Sep 5, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">look at this</div>
+        <div class="attachments media-gif">
+          <video class="gif" poster="/pic/pbs.twimg.com%2Ftweet_video_thumb%2FGIFTHUMB.jpg">
+            <source src="/pic/video.twimg.com%2Ftweet_video%2FHD-gifclip.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Link-preview card. Captured as evidence in `raw`, not modelled. -->
+    <div class="timeline-item" data-username="OpenAI">
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/OpenAI/status/1000000000000000007#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="OpenAI" href="/OpenAI">OpenAI</a>
+            <a class="username" title="@OpenAI" href="/OpenAI">@OpenAI</a>
+            <span class="tweet-date"><a href="/OpenAI/status/1000000000000000007#m" title="Sep 4, 2024 · 10:00 AM UTC">Sep 4, 2024</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">Read the post</div>
+        <div class="card">
+          <a class="card-container" href="https://example.com/post"></a>
+          <h2 class="card-title">A blog post</h2>
+          <p class="card-description">Some description of the post.</p>
+          <span class="card-destination">example.com</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Relative date only. `created_at` must stay None rather than being
+         guessed, because a relative timestamp has no absolute meaning. -->
+    <div class="timeline-item" data-username="jack">
+      <div class="tweet-body">
+        <div class="tweet-header">
+          <a class="tweet-link" href="/jack/status/1000000000000000008#m"></a>
+          <div class="tweet-header-info">
+            <a class="fullname" title="jack" href="/jack">jack</a>
+            <a class="username" title="@jack" href="/jack">@jack</a>
+            <span class="tweet-date"><a href="/jack/status/1000000000000000008#m">3h</a></span>
+          </div>
+        </div>
+        <div class="tweet-content media-body" dir="auto">recent one</div>
+      </div>
+    </div>
+
+    <!-- 9. No permalink anywhere: must be skipped, not crash, not invent an id. -->
+    <div class="timeline-item" data-username="jack">
+      <div class="tweet-body">
+        <div class="tweet-content media-body" dir="auto">orphan record</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

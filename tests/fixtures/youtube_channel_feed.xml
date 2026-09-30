@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCabcdefghijklmnopqrstuv"/>
+ <id>yt:channel:UCabcdefghijklmnopqrstuv</id>
+ <yt:channelId>UCabcdefghijklmnopqrstuv</yt:channelId>
+ <title>Some Channel</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv"/>
+ <author>
+  <name>Some Channel</name>
+  <uri>https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv</uri>
+ </author>
+ <published>2011-04-04T19:00:00+00:00</published>
+ <entry>
+  <id>yt:video:dQw4w9WgXcQ</id>
+  <yt:videoId>dQw4w9WgXcQ</yt:videoId>
+  <yt:channelId>UCabcdefghijklmnopqrstuv</yt:channelId>
+  <title>First Video</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"/>
+  <author>
+   <name>Some Channel</name>
+   <uri>https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv</uri>
+  </author>
+  <published>2026-09-28T11:45:00+00:00</published>
+  <updated>2026-09-29T09:00:00+00:00</updated>
+  <media:group>
+   <media:title>First Video</media:title>
+   <media:content url="https://www.youtube.com/v/dQw4w9WgXcQ?version=3" type="application/x-shockwave-flash" width="640" height="390" duration="213"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" width="480" height="360"/>
+   <media:description>First video description &amp; more.</media:description>
+   <media:community>
+    <media:starRating count="1000" average="5.00" min="1" max="5"/>
+    <media:statistics views="12345"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:aaaaaaaaaaa</id>
+  <yt:videoId>aaaaaaaaaaa</yt:videoId>
+  <yt:channelId>UCabcdefghijklmnopqrstuv</yt:channelId>
+  <title>Second Video</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=aaaaaaaaaaa"/>
+  <author>
+   <name>Some Channel</name>
+   <uri>https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv</uri>
+  </author>
+  <published>2026-09-27T02:15:30+00:00</published>
+  <updated>2026-09-27T02:15:30+00:00</updated>
+  <media:group>
+   <media:title>Second Video</media:title>
+   <media:content url="https://www.youtube.com/v/aaaaaaaaaaa?version=3" type="application/x-shockwave-flash" width="640" height="390" duration="90"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/aaaaaaaaaaa/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Second video description.</media:description>
+   <media:community>
+    <media:starRating count="5" average="5.00" min="1" max="5"/>
+    <media:statistics views="42"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:bbbbbbbbbbb</id>
+  <yt:videoId>bbbbbbbbbbb</yt:videoId>
+  <yt:channelId>UCabcdefghijklmnopqrstuv</yt:channelId>
+  <title>Third Video Without Description Or Thumbnail</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=bbbbbbbbbbb"/>
+  <author>
+   <name>Some Channel</name>
+   <uri>https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv</uri>
+  </author>
+  <published>2026-09-26T08:00:00+00:00</published>
+  <updated>2026-09-26T08:00:00+00:00</updated>
+  <media:group>
+   <media:title>Third Video Without Description Or Thumbnail</media:title>
+   <media:content url="https://www.youtube.com/v/bbbbbbbbbbb?version=3" type="application/x-shockwave-flash" width="640" height="390" duration="10"/>
+   <media:description></media:description>
+  </media:group>
+ </entry>
+</feed>

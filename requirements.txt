@@ -1,0 +1,14 @@
+# X-Reader runtime dependencies.
+#
+# Kept deliberately small. No LLM SDK, no notification SDK, no web framework:
+# the architecture freeze requires that fetching + storage work with none of
+# those present.
+#
+# Note: x-tweet-fetcher is NOT listed here. The xtf provider is an optional
+# adapter that activates only when that package happens to be installed, so
+# X-Reader has no hard dependency on a reference project.
+
+httpx>=0.28
+selectolax>=0.3
+PyYAML>=6.0
+pydantic>=2.0

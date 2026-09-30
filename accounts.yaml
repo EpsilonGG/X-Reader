@@ -1,0 +1,32 @@
+# Accounts that X-Reader tracks over time.
+#
+# This is the only place accounts are declared. Nothing in the business logic
+# hardcodes an account name (architecture freeze, section 16).
+#
+# Forms accepted:
+#   - username: someuser
+#   - username: someuser
+#     enabled: false     # keep the entry but skip it during a run
+#   - someuser           # bare-string shorthand
+#
+# X usernames are matched case-insensitively for duplicate detection.
+#
+# The set below is migrated from X-rss (`X-rss-main/accounts.yaml`), which is
+# the source of truth for which accounts are fetched. X-rss has no
+# enabled/disabled concept -- every account it declares is fetched
+# unconditionally -- so all of them carry over as enabled. Usernames are
+# reproduced verbatim, including case.
+
+accounts:
+
+  - username: mimoriaino
+  - username: mimo_chorion
+  - username: re_re_tsubame
+  - username: suzuka_minase
+  - username: asuparama40
+  - username: mirai_chiroru
+  - username: yuzuki_momoka
+  - username: momoka_vtuber
+  - username: hiyori_voice
+  - username: M_chipo_O
+  - username: 322yui3

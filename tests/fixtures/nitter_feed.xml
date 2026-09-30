@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>jack / @jack</title>
+    <link>https://nitter.example/jack</link>
+    <description>Twitter feed for: @jack</description>
+    <atom:link href="https://nitter.example/jack/rss" rel="self" type="application/rss+xml" />
+
+    <!-- Plain tweet: title is "Display Name: text", absolute pubDate,
+         HTML description with a <br> that must become a newline, and one
+         image enclosure behind the instance's /pic/ proxy. -->
+    <item>
+      <title>jack: just setting up my twttr</title>
+      <dc:creator>@jack</dc:creator>
+      <description>&lt;p&gt;line one&lt;br&gt;line two &amp;amp; more&lt;/p&gt;</description>
+      <pubDate>Wed, 11 Sep 2024 19:31:00 GMT</pubDate>
+      <link>https://nitter.example/jack/status/1000000000000000001#m</link>
+      <guid>https://nitter.example/jack/status/1000000000000000001#m</guid>
+      <enclosure url="https://nitter.example/pic/orig/media%2FCNq2BQMWIAESvuO.jpg" type="image/jpeg" length="0" />
+    </item>
+
+    <!-- Retweet: the "RT by @handle:" prefix must be recognised, and the author
+         must come from the permalink rather than from the title. X-rss reads
+         the title's left half as the username here, which is how it ends up
+         publishing authors literally named "RT by @SCA_DI". -->
+    <item>
+      <title>RT by @SCA_DI: retweeted content</title>
+      <description>&lt;p&gt;retweeted content&lt;/p&gt;</description>
+      <pubDate>Wed, 11 Sep 2024 18:00:00 GMT</pubDate>
+      <link>https://nitter.example/SCA_DI/status/1000000000000000002#m</link>
+      <guid>https://nitter.example/SCA_DI/status/1000000000000000002#m</guid>
+    </item>
+
+    <!-- Video enclosure: must resolve to video.twimg.com, not pbs.twimg.com. -->
+    <item>
+      <title>OpenAI: a video update</title>
+      <description>&lt;p&gt;a video update&lt;/p&gt;</description>
+      <pubDate>Wed, 11 Sep 2024 17:00:00 GMT</pubDate>
+      <link>https://nitter.example/OpenAI/status/1000000000000000003#m</link>
+      <guid>https://nitter.example/OpenAI/status/1000000000000000003#m</guid>
+      <enclosure url="https://nitter.example/pic/video.twimg.com%2Ftweet_video%2FHD-clip.mp4" type="video/mp4" length="0" />
+    </item>
+
+    <!-- No permalink anywhere: must be skipped rather than inventing an id. -->
+    <item>
+      <title>an item with no tweet link</title>
+      <description>&lt;p&gt;should be skipped&lt;/p&gt;</description>
+      <pubDate>Wed, 11 Sep 2024 16:00:00 GMT</pubDate>
+      <guid>not-a-tweet-guid</guid>
+    </item>
+
+    <!-- Two enclosures pointing at the same media: deduplicated to one. -->
+    <item>
+      <title>jack: duplicated media</title>
+      <description>&lt;p&gt;duplicated media&lt;/p&gt;</description>
+      <pubDate>Wed, 11 Sep 2024 15:00:00 GMT</pubDate>
+      <link>https://nitter.example/jack/status/1000000000000000004#m</link>
+      <guid>https://nitter.example/jack/status/1000000000000000004#m</guid>
+      <enclosure url="https://nitter.example/pic/media%2FSAME.jpg" type="image/jpeg" length="0" />
+      <enclosure url="https://nitter.example/pic/orig/media%2FSAME.jpg" type="image/jpeg" length="0" />
+    </item>
+
+  </channel>
+</rss>
