@@ -9,6 +9,13 @@
 # X-Reader has no hard dependency on a reference project.
 
 httpx>=0.28
-selectolax>=0.3
+# Pinned below 1.0 on purpose. selectolax 1.0 removed the `modest` backend and
+# turned `from selectolax.parser import HTMLParser` into a hard ImportError at
+# import time, which is what broke the first CI run of the daily job: the local
+# venv had 0.4.x, the runner resolved 1.0, and every test module failed to
+# import. Moving to `selectolax.lexbor` is the real fix, but it changes which
+# HTML engine parses the timelines, so it should be its own change with the
+# fixtures re-checked — not something to slip in while turning the schedule on.
+selectolax>=0.3,<1.0
 PyYAML>=6.0
 pydantic>=2.0
