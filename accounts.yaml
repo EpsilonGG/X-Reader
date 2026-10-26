@@ -1,32 +1,144 @@
 # Accounts that X-Reader tracks over time.
 #
-# This is the only place accounts are declared. Nothing in the business logic
-# hardcodes an account name (architecture freeze, section 16).
+# GENERATED FILE -- do not edit by hand.
+# Source of truth: src/config/daily-roster.json in the site repository
+# (EpsilonGG/epsilongg.github.io). Regenerate with:
 #
-# Forms accepted:
-#   - username: someuser
-#   - username: someuser
-#     enabled: false     # keep the entry but skip it during a run
-#   - someuser           # bare-string shorthand
+#   python scripts/sync_xreader_accounts.py --out <this file>
 #
-# X usernames are matched case-insensitively for duplicate detection.
+# Only `category: seiyuu` entries with `active != false` are written. Circle and
+# manufacturer accounts are in the roster but marked inactive, so they are
+# deliberately absent here: the daily report does not consume them yet.
 #
-# The set below is migrated from X-rss (`X-rss-main/accounts.yaml`), which is
-# the source of truth for which accounts are fetched. X-rss has no
-# enabled/disabled concept -- every account it declares is fetched
-# unconditionally -- so all of them carry over as enabled. Usernames are
-# reproduced verbatim, including case.
+# 名单里每个 handle 的 role（main / sub / announce）不写进这个文件——抓取侧不
+# 关心它是主号还是小号，抓全就行；role 只在站点侧决定展示顺序。
 
 accounts:
-
-  - username: mimoriaino
-  - username: mimo_chorion
+  - username: yukanyan2525
+  - username: yukanyan_2525
+  - username: Hinatayuka_nyan
   - username: re_re_tsubame
+  - username: tsubame_kokuchi
   - username: suzuka_minase
+  - username: akinokaedevo
+  - username: narumiaisaka
   - username: asuparama40
+  - username: siokaraoi4
   - username: mirai_chiroru
+  - username: chiroru_o_
+  - username: devil_chiroru_v
+  - username: mochiri_0909
+  - username: mochiri_senden
+  - username: mimo_chorion
+  - username: mimoriaino
+  - username: melty_honey_pot
+  - username: harurupanda0827
+  - username: ryonarab
+  - username: shiho_moai
+  - username: __amachi
+  - username: 322yui3
+  - username: ayakaigasaki
+  - username: ayakaigasaki69
+  - username: gemiko_voice
+  - username: momokar181
+  - username: mame_ruse
+  - username: asagishiki00
+  - username: suikauriko
+  - username: urichansuika
   - username: yuzuki_momoka
   - username: momoka_vtuber
+  - username: koyama9haru
+  - username: fujimura_rio
+  - username: nashihanami
+  - username: bee_ryo
+  - username: 1_rito
+  - username: p_o_g_s2
+  - username: poplar_berm
   - username: hiyori_voice
+  - username: aizawa_nachu
+  - username: CV_kumoyahachi
+  - username: badgirlshop8
+  - username: otonopusco
+  - username: oOYuKiKoOo
+  - username: oOYuKiKo_NewsOo
+  - username: saku_mix_voice
+  - username: kotone_akv
+  - username: jiaomidsu3187
+  - username: kuroseimu_000
+  - username: kokko_kohanai
+  - username: flanklm
+  - username: Unicolony_uni
+  - username: y_asm
+  - username: sato_sioo
+  - username: yuzukiakari
+  - username: akaritta_news
+  - username: anninninraichi
+  - username: DLyukimidaifuku
+  - username: KAMiSiRO_cast
+  - username: namimimiobot
+  - username: mitakarin
+  - username: hoshinora1212
+  - username: mugisawa727
+  - username: kotoritoko_1015
+  - username: mei_misonoo
+  - username: ria_arino0707
+  - username: nemurinerima
+  - username: lilim404
+  - username: DoujinOnseiCom
+  - username: LilimUzuki
+  - username: koyoring54
+  - username: koyoring55
+  - username: girlscreationpr
+  - username: sakuraemi2
+  - username: nekomi_hime
+  - username: mzn773
+  - username: mmegumu
+  - username: yu_hadki
+  - username: ikuraeru
+  - username: yukirinrin1191
+  - username: my_mimichinchin
+  - username: mymy_mimichinchin
+  - username: mymy_mimichi
+  - username: Setsune_Soyogi
+  - username: jtjitkub5r_uuka
+  - username: ndk39
+  - username: phan_work
+  - username: Suzune_2816
+  - username: shiharuuun
+  - username: haruno_tsukushi
+  - username: shimotsukiyuu
+  - username: sakissaki_voice
+  - username: AMAKARAsyndrome
+  - username: hekilab
+  - username: ayanemako
+  - username: yuna_na7se
+  - username: mashiro_mayuki_
+  - username: __yukimichi__
+  - username: ayumi_sarah
+  - username: potte1919
+  - username: IMOSAKA_B_C_
+  - username: aoitokio
+  - username: tanaka_osushi
+  - username: mskmiro316
+  - username: refle_ookami
+  - username: kiruu_1
   - username: M_chipo_O
-  - username: 322yui3
+  - username: maihal_yuu
+  - username: ran_ran_ranze25
+  - username: kanojo_nyui
+  - username: Hina_ayame_vo
+  - username: mi_ru_ku88
+  - username: sakuramomoka710
+  - username: shirosawasayaka
+  - username: seiraakane
+  - username: hotaoctenten
+  - username: ogurayui1017
+  - username: ogubit_ASMR
+  - username: runhanami
+  - username: kimiiromizu
+  - username: Noa_Hikami
+  - username: shindo_azusa
+  - username: kanzinowatashi
+  - username: hako_noah
+  - username: anzumitsu
+  - username: ricca_kitami

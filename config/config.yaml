@@ -18,16 +18,23 @@ provider:
   nitter:
     # Public Nitter instances, tried in order with failover. Endpoints are
     # whitespace-stripped during validation.
+    #
+    # Order matters for wall-clock time, not for correctness: every dead
+    # instance costs one timeout before the loop moves on. On 2026-10-26 the
+    # 13-instance list was probed for /re_re_tsubame/rss and only one returned
+    # a real feed — the rest answered 410 (gone), 451 (legal block), 403, or a
+    # 200 carrying an anti-bot interstitial. So the one live instance goes
+    # first and the rest stay as fallbacks for when it dies.
     endpoints:
-      - https://nitter.poast.org
+      - https://nitter.meowing.monster
+      - https://nitter.tiekoetter.com
       - https://xcancel.com
+      - https://nitter.privacyredirect.com
+      - https://nitter.poast.org
       - https://nitter.net
       - https://nitter.no-logs.com
       - https://nitter.privacydev.net
-      - https://nitter.tiekoetter.com
-      - https://nitter.privacyredirect.com
       - https://nuku.trabun.org
-      - https://nitter.meowing.monster
       - https://nitter.xitter.cc
       - https://nitter.jaydenha.uk
       - https://x.n0g.xyz

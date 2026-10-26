@@ -886,10 +886,14 @@ QQ 那侧的真实收发在测试里用一个本地假 OneBot 服务器验证（
 
    ```
    Use this token to access the HTTP API:
-   数字:字母
+   <你的机器人令牌>
    ```
 
-   这一长串就是**机器人令牌（Bot Token）**。
+   这一长串就是**机器人令牌（Bot Token）**。它的形状是「一串数字 + 一个冒号 + 一串字母数字」——
+   **中间那个冒号是令牌的一部分**，复制的时候要一起带上。
+
+   <!-- 这里刻意不放样例令牌：任何形似真令牌的字符串都会被 GitHub 的密钥扫描
+        判定为公开泄漏并持续报警。占位符必须一眼就能看出是占位符。 -->
 
 > 🔑 **这一串就是密码。** 拿到它的人可以完全控制你的机器人，能以机器人的身份发消息。所以：
 >
@@ -957,7 +961,7 @@ QQ 那侧的真实收发在测试里用一个本地假 OneBot 服务器验证（
 | | 机器人令牌（Bot Token） | Chat ID |
 | --- | --- | --- |
 | 回答的问题 | **谁在发** | **发给谁** |
-| 长相 | `123456789:AAExample...`（含冒号，很长） | 一串数字，通常是**负数**，比如 `-1001234567890` |
+| 长相 | `<一串数字>:<一串字母数字>`（含冒号，很长） | 一串数字，通常是**负数**，比如 `-1001234567890` |
 | 会变吗 | 只有你主动 revoke 才会变 | 不变 |
 | 存哪 | GitHub Secret `TELEGRAM_BOT_TOKEN` | GitHub Secret `TELEGRAM_CHAT_ID` |
 
@@ -1036,7 +1040,7 @@ QQ 那侧的真实收发在测试里用一个本地假 OneBot 服务器验证（
 4. 点右边绿色的 **New repository secret** 按钮。
 5. 添加**第一个**：
    - **Name** 填：`TELEGRAM_BOT_TOKEN`
-   - **Secret** 填：第 16 节拿到的机器人令牌（`123456789:AAExample...`）
+   - **Secret** 填：第 16 节拿到的机器人令牌
    - 点 **Add secret**
 6. 再点一次 **New repository secret**，添加**第二个**：
    - **Name** 填：`TELEGRAM_CHAT_ID`
@@ -1115,7 +1119,7 @@ telegram:
 >     endpoints: [https://nitter.poast.org]
 > telegram:
 >   enabled: true
->   bot_token: "123456789:AA..."    # ✗ 不允许：多余字段
+>   bot_token: "<你的机器人令牌>"    # ✗ 不允许：多余字段
 >   chat_id: "-1001234567890"       # ✗ 不允许：多余字段
 > ```
 >
@@ -1582,7 +1586,7 @@ python scripts/verify_storage.py
 Windows PowerShell：
 
 ```powershell
-$env:TELEGRAM_BOT_TOKEN = "123456789:AA..."
+$env:TELEGRAM_BOT_TOKEN = "<你的机器人令牌>"
 $env:TELEGRAM_CHAT_ID   = "-1001234567890"
 python main.py
 ```
@@ -1590,7 +1594,7 @@ python main.py
 macOS / Linux / Git Bash：
 
 ```bash
-export TELEGRAM_BOT_TOKEN="123456789:AA..."
+export TELEGRAM_BOT_TOKEN="<你的机器人令牌>"
 export TELEGRAM_CHAT_ID="-1001234567890"
 python main.py
 ```

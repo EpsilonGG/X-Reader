@@ -658,7 +658,9 @@ provider:
     endpoints: [https://a.example]
 telegram:
   enabled: true
-  bot_token: "123456:AAExampleTokenThatShouldNotBeHere"
+  # The value is irrelevant: it is the *key* that is rejected, so no
+  # token-shaped literal is needed (and one would trip secret scanning).
+  bot_token: "not-a-real-token"
 """,
         encoding="utf-8",
     )

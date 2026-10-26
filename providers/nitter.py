@@ -20,6 +20,8 @@ workflow's time budget.
 """
 from __future__ import annotations
 
+import re
+
 from domain.errors import ProviderError
 from domain.models.account import Account
 from infrastructure.http.client import HTTPClient
@@ -28,6 +30,30 @@ from providers.base import BaseProvider
 
 ROUTE_RSS = "rss"
 ROUTE_HTML = "html"
+
+# A 200 is not proof of a feed. Public instances increasingly sit behind
+# anti-bot interstitials (Anubis, Cloudflare) that answer 200 with an HTML
+# challenge page. Accepting that as success is worse than a hard failure: the
+# run reports "0 tweets" for every account and the instance loop stops at the
+# first challenger, so the one instance that *would* have worked is never tried.
+_CHALLENGE = re.compile(
+    r"making sure you[’']?re not a bot|anubis|cf-browser-verification"
+    r"|just a moment\.\.\.|checking your browser|enable javascript and cookies",
+    re.IGNORECASE,
+)
+
+
+def _looks_like_payload(route: str, text: str) -> bool:
+    """Whether `text` is the thing this route is supposed to return."""
+    head = text[:4096]
+    if _CHALLENGE.search(head):
+        return False
+    if route == ROUTE_RSS:
+        # Nitter's RSS always carries the channel wrapper, even for an account
+        # with no tweets in the window.
+        return "<rss" in text or "<channel" in text
+    # The HTML route: a real timeline (even an empty one) has the container.
+    return 'class="timeline' in text or "timeline-item" in text
 
 
 class NitterProvider(BaseProvider):
@@ -94,9 +120,14 @@ class NitterProvider(BaseProvider):
                     break
                 continue
 
+            if not _looks_like_payload(route, response.text):
+                # 200 + a challenge page or an error page. Treat it as this
+                # instance failing, not as "this account has no tweets".
+                causes[endpoint] = "challenge/interstitial (200 but not a payload)"
+                continue
+
             self._preferred = endpoint
             return response
-
         detail = "; ".join(f"{ep} -> {why}" for ep, why in causes.items()) or "no endpoints"
         raise ProviderError(
             f"nitter/{route} failed for {account.display} "

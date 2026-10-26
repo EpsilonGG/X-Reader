@@ -1,0 +1,223 @@
+name: Fetch X, RSS and YouTube data
+
+# Two triggers, both required by the architecture freeze:
+#   * workflow_dispatch — a human can run it on demand
+#   * schedule          — it runs unattended
+#
+# The workflow contains no business logic. It installs dependencies, runs
+# `python main.py`, and commits whatever the program wrote to `data/`. Every
+# rule about how content is fetched, parsed, normalized, stored and delivered
+# lives in the Python package, so the same command works identically on a laptop.
+#
+# One entrypoint, three kinds of input: `main.py` dispatches the X accounts
+# (accounts.yaml), the RSS sources (`rss_sources`) and the YouTube channels
+# (`youtube_channels`) declared in `config/config.yaml`. There is deliberately no
+# `fetch_x.py` + `fetch_rss.py` + `fetch_youtube.py` split — that would put the
+# pipeline's shape into the workflow file instead of the code.
+#
+# Delivery is opt-in per output and configured in `config/config.yaml`
+# (`telegram.enabled`, `qq.enabled`). Telegram and QQ are independent: either,
+# both or neither. When an output is on, its credentials are passed to the run as
+# environment variables from GitHub repository secrets:
+#
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#     TELEGRAM_BOT_TOKEN   the token BotFather gave you
+#     TELEGRAM_CHAT_ID     the id of the chat/group/channel to post to
+#     ONEBOT_ACCESS_TOKEN  the OneBot access token (optional — leave it unset if
+#                          your OneBot has no access token configured)
+#
+# Note what is *not* a secret: the QQ group id and the OneBot base URL are plain
+# configuration and belong in `config/config.yaml`. Only the access token is a
+# credential, and it exists only here and in the environment.
+#
+# The workflow only *names* the secrets; it never prints them, never writes them
+# to a file, and never puts them in an artifact. If one is missing, the run says
+# so and leaves the items pending — it does not fail the build, and it does not
+# silently skip delivery.
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: "Only fetch this X account (blank = all enabled accounts)"
+        required: false
+        default: ""
+      limit:
+        description: "Max tweets per X account for this run"
+        required: false
+        default: ""
+      no_rss:
+        description: "Skip the RSS sources declared in config/config.yaml"
+        required: false
+        type: boolean
+        default: false
+      no_youtube:
+        description: "Skip the YouTube channels declared in config/config.yaml"
+        required: false
+        type: boolean
+        default: false
+
+  schedule:
+    # 12:00 UTC daily = 20:00 北京时间（东八区晚八点）。
+    # Twice a day, on the two boundaries that matter for a JST daily report.
+    #
+    #   03:00 UTC = 12:00 JST  — the morning half of the JST day
+    #   15:00 UTC = 00:00 JST  — the JST day has just closed; this is the run
+    #                            the report generator waits for
+    #
+    # Two runs, not one, because Nitter's RSS route returns at most ~20 items
+    # per account. A single daily run at midnight would silently drop the
+    # oldest tweets of anyone who posted more than 20 times that day. Splitting
+    # the day in half keeps each window well under the cap.
+    #
+    # GitHub's scheduler is not exact: a run may start 5–30 minutes late under
+    # load. That is harmless here — the store is append-only and the report
+    # filters by JST calendar day afterwards.
+    - cron: "0 3,15 * * *"
+
+# Needed to push the updated data back to the repository.
+permissions:
+  contents: write
+
+# Two concurrent runs would both append to the same JSONL files and then fight
+# over the push. Serialise them instead; never cancel one mid-write.
+concurrency:
+  group: x-reader-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so the rebase before pushing works.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      # Run the tests first: a broken parser must never write bad data into the
+      # store, and the store is committed, so bad data is expensive to undo.
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Fetch, store and deliver
+        id: fetch
+        continue-on-error: true
+        # The secrets are mapped in, not interpolated into the command line:
+        # `${{ secrets.X }}` in a `run:` body would end up in the shell history
+        # and in the job log. As environment variables they are only ever read
+        # by the program, and it redacts them from every message it produces.
+        #
+        # An unset repository secret expands to an empty string, so a deployment
+        # that never uses QQ simply leaves ONEBOT_ACCESS_TOKEN undefined and the
+        # adapter sends no Authorization header — a normal OneBot setup.
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ONEBOT_ACCESS_TOKEN: ${{ secrets.ONEBOT_ACCESS_TOKEN }}
+        run: |
+          set -o pipefail
+          args=(--json)
+          if [ -n "${{ inputs.account }}" ]; then
+            args+=(--account "${{ inputs.account }}")
+          fi
+          if [ -n "${{ inputs.limit }}" ]; then
+            args+=(--limit "${{ inputs.limit }}")
+          fi
+          if [ "${{ inputs.no_rss }}" = "true" ]; then
+            args+=(--no-rss)
+          fi
+          if [ "${{ inputs.no_youtube }}" = "true" ]; then
+            args+=(--no-youtube)
+          fi
+          python main.py "${args[@]}" | tee report.json
+
+      - name: Verify what was stored
+        if: always()
+        run: python scripts/verify_storage.py
+
+      # Surface per-unit failures without turning the whole job red: a single
+      # dead or renamed account, or one unreachable feed, should be visible
+      # rather than fatal.
+      - name: Summarise the run
+        if: always()
+        run: |
+          {
+            echo "## X-Reader fetch"
+            echo
+            echo '```json'
+            cat report.json 2>/dev/null || echo "no report produced"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -f report.json ]; then
+            failed=$(python -c "import json; d=json.load(open('report.json')); print(' '.join(f\"{o['kind']}:{o['account']}\" for o in d['outcomes'] if o['status']=='error'))")
+            if [ -n "$failed" ]; then
+              echo "::warning::units failed this run: $failed"
+            fi
+
+            # Delivery failures are a warning, not a build failure: the data was
+            # acquired and stored, and the undelivered items stay pending for the
+            # next run. `report.json` is redacted by the program, so it is safe
+            # to print and to upload.
+            undelivered=$(python -c "import json; d=json.load(open('report.json')); print(' '.join(f\"{o['output']}({o['failed']} failed)\" for o in d.get('deliveries', []) if o['failed']))")
+            if [ -n "$undelivered" ]; then
+              echo "::warning::delivery incomplete: $undelivered — items stay pending and will be retried"
+            fi
+          fi
+
+      - name: Commit updated data
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # `data/` covers three things, all of which must survive the run:
+          #   items/     the canonical NormalizedItem store
+          #   accounts/  the raw X-tweet archive
+          #   delivery/  which items each output has already sent
+          # The delivery state is what stops a message being posted twice, so
+          # losing it would replay the whole backlog. It is per output
+          # (`delivery/telegram.jsonl`, `delivery/qq.jsonl`), so one output's
+          # failure cannot make another output re-send anything.
+          git add data
+          if git diff --cached --quiet; then
+            echo "No new data"
+          else
+            git commit -m "chore(data): update X data store"
+            # The branch may have moved while this job ran; rebase before
+            # pushing. X-rss omits this and its push fails whenever another
+            # commit lands during a run.
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+            git push
+          fi
+
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-reader-diagnostics
+          path: |
+            report.json
+            data/raw
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Fail if the run produced nothing
+        if: steps.fetch.outcome == 'failure'
+        run: |
+          echo "::error::every attempted unit failed; see the summary above"
+          exit 1

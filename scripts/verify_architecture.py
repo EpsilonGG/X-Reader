@@ -265,29 +265,49 @@ def check_workflow() -> None:
 
 
 # ---------------------------------------------------------------- 6. secrets
-TOKEN_SHAPED = re.compile(r"\b\d{8,12}:[A-Za-z0-9_-]{30,}\b")
+#: A Telegram bot token is ``<bot id>:<secret>``. The bounds are deliberately
+#: loose — the cost of a false positive is one edit, and the cost of a false
+#: negative is a public-leak alert. GitHub's scanner flagged a documented
+#: *placeholder* in README.md, so "it obviously looks fake" is not a defence
+#: this check is allowed to make any more.
+TOKEN_SHAPED = re.compile(r"\b\d{6,}:[A-Za-z0-9_-]{20,}\b")
+
+#: Extensions scanned for token-shaped literals. Markdown is included because
+#: the README is the most-read file in the repo and the one that leaked;
+#: ``data/`` is excluded because fetched content is arbitrary text and has its
+#: own dedicated check (:func:`check_data_dir_has_no_secrets`).
+SECRET_SCAN_SUFFIXES = (".py", ".yaml", ".yml", ".md", ".txt", ".toml")
 
 
 def check_no_secret_literals() -> None:
-    """A real bot token has a very specific shape; nothing should look like one."""
+    """Nothing in source, config or docs may look like a bot token.
+
+    Every token-shaped literal is a finding, including ones a human would call
+    an obvious placeholder. An earlier version of this check exempted anything
+    containing ``Example``/``fake``/``test`` and skipped ``*.md`` entirely —
+    which is precisely how a placeholder in README.md reached a public repo and
+    tripped GitHub's secret scanning. A scanner cannot tell a placeholder from a
+    credential, so the check no longer tries to.
+    """
     offenders: list[str] = []
-    for path in list(ROOT.rglob("*.py")) + list(ROOT.rglob("*.yaml")) + list(ROOT.rglob("*.yml")):
-        if ".venv" in path.parts or "__pycache__" in path.parts:
+    for path in ROOT.rglob("*"):
+        if not path.is_file() or path.suffix not in SECRET_SCAN_SUFFIXES:
+            continue
+        if ".venv" in path.parts or "__pycache__" in path.parts or "data" in path.parts:
             continue
         try:
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
         for match in TOKEN_SHAPED.finditer(text):
-            token = match.group(0)
-            # Test placeholders are obviously not real.
-            if any(marker in token for marker in ("Example", "fake", "test", "AAAA")):
-                continue
-            offenders.append(f"{path.relative_to(ROOT)}: {token[:12]}...")
+            offenders.append(f"{path.relative_to(ROOT)}: {match.group(0)[:12]}...")
     if offenders:
-        fail(f"something shaped like a real bot token is in the repo: {offenders}")
+        fail(
+            "something shaped like a real bot token is in the repo: "
+            f"{offenders} — use a placeholder such as <你的机器人令牌>"
+        )
     else:
-        ok("no bot-token-shaped literal anywhere in source or config")
+        ok("no bot-token-shaped literal in source, config or docs")
 
 
 def check_data_dir_has_no_secrets() -> None:

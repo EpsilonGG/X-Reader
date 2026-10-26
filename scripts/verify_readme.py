@@ -498,12 +498,24 @@ def check_tree_matches_filesystem(text: str) -> None:
 
 
 def check_no_secrets_in_readme(text: str) -> None:
-    """Every token-looking string in the README must be obviously a placeholder."""
-    for match in re.finditer(r"\b(\d{6,}:[A-Za-z0-9_-]{20,})\b", text):
-        token = match.group(1)
-        if "Example" not in token and "AA" not in token:
-            fail(f"README contains something that looks like a real bot token: {token[:12]}...")
-    ok("no real-looking bot token in the README")
+    """The README must contain **no** token-shaped literal — not even a fake one.
+
+    This check used to allow strings containing ``Example`` or ``AA``, on the
+    theory that a placeholder is obviously a placeholder. GitHub's secret
+    scanning disagreed, and it was right: it opened a public-leak alert on
+    exactly such a string in this README, because a scanner cannot tell a
+    documented placeholder from a leaked credential — and neither can a reader
+    skimming a diff. The rule is now absolute: write ``<你的机器人令牌>``.
+    """
+    pattern = re.compile(r"\b\d{6,}:[A-Za-z0-9_-]{20,}\b")
+    offenders = [match.group(0) for match in pattern.finditer(text)]
+    if offenders:
+        fail(
+            "the README contains a token-shaped literal "
+            f"({offenders[0][:12]}…); use a placeholder such as <你的机器人令牌>"
+        )
+    else:
+        ok("the README contains no token-shaped literal at all")
 
 
 def main() -> int:

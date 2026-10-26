@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Transient run artefacts (written by the workflow, not part of the store).
+report.json
+
+# Secrets. X-Reader reads the Telegram bot token and chat id from the
+# *environment*, never from a file — but a local shell often sources a .env, and
+# a secret that reaches git is compromised. Belt and braces.
+.env
+.env.*
+!.env.example
+
+# NOTE: data/ is deliberately NOT ignored. It is X-Reader's persistent store,
+# and committing it is the only way state survives between Actions runs.
