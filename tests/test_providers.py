@@ -39,7 +39,14 @@ class FakeClient:
         pass
 
 
-def ok_response(url: str, text: str = "<html>ok</html>"):
+def ok_response(url: str, text: str = '<html><div class="timeline"></div></html>'):
+    """A 200 that *is* a payload.
+
+    The default body is a timeline container rather than `<html>ok</html>`
+    because the provider now rejects 200s that are not the thing the route is
+    supposed to return. A stub body would make every test exercise the
+    challenge-page path by accident.
+    """
     from datetime import datetime, timezone
 
     from infrastructure.http.response import RawResponse
@@ -122,6 +129,49 @@ def test_nitter_falls_over_to_the_next_instance(account_obj):
     response = provider.fetch(account_obj, "html")
     assert response.url == "https://b.example/jack"
     assert client.calls == ["https://a.example/jack", "https://b.example/jack"]
+
+
+def test_nitter_treats_a_challenge_page_as_an_instance_failure(account_obj):
+    """200 + an anti-bot interstitial must not be mistaken for "no tweets".
+
+    This is the failure that made the daily report look empty while a working
+    instance sat further down the list: the loop stopped at the first 200, the
+    parser then found zero tweets, and every account silently reported "no
+    activity today".
+    """
+    challenge = (
+        "<html><head><title>Making sure you&#39;re not a bot!</title></head>"
+        "<body>Enable JavaScript and cookies to continue</body></html>"
+    )
+    client = FakeClient(
+        {
+            "https://a.example/jack": ok_response("https://a.example/jack", challenge),
+            "https://b.example/jack": ok_response("https://b.example/jack"),
+        }
+    )
+    provider = NitterProvider(
+        endpoints=["https://a.example", "https://b.example"], client=client
+    )
+    response = provider.fetch(account_obj, "html")
+    assert response.url == "https://b.example/jack"
+    assert provider.preferred_endpoint == "https://b.example"
+
+
+def test_nitter_rejects_a_200_that_is_not_a_feed(account_obj):
+    """The RSS route must see an RSS document, not just any 200."""
+    client = FakeClient(
+        {
+            "https://a.example/jack/rss": ok_response("https://a.example/jack/rss", "<html>nope</html>"),
+            "https://b.example/jack/rss": ok_response(
+                "https://b.example/jack/rss", '<?xml version="1.0"?><rss><channel></channel></rss>'
+            ),
+        }
+    )
+    provider = NitterProvider(
+        endpoints=["https://a.example", "https://b.example"], client=client
+    )
+    response = provider.fetch(account_obj, "rss")
+    assert response.url == "https://b.example/jack/rss"
 
 
 def test_nitter_reports_every_instance_when_all_fail(account_obj):
