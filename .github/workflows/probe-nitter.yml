@@ -1,0 +1,190 @@
+name: probe-nitter
+
+# 一次性诊断工作流：只回答一个问题 ——「这些 Nitter 实例，从 GitHub 的出口能不能抓到东西」。
+#
+# 为什么不在本机测：开发机上 14 个候选全部在代理 CONNECT 阶段 502，连现役的
+# nitter.meowing.monster 也打不开。那不是实例死了，是那台机器的出口限制。
+# GitHub 的 runner 是干净的 Azure 出口，直连、无代理，是目前唯一能给出
+# 有效结论的环境。
+#
+# 两段：
+#   1. 探针（scripts/probe_instances.py）—— 只看形状：rss 有没有 <item>、
+#      html 有没有 timeline-item。200 + 验证页也算失败。
+#   2. 真抓（main.py）—— 把探针里第一个 rss=ok 的实例写进 config 的
+#      endpoints，然后走完整链路跑一个账号，看落库条数。
+#      这一步才是「能不能抓到」，第 1 步只是「连不连得上」。
+#
+# 不写回仓库、不提交 data/：这是诊断，不是生产。
+
+on:
+  workflow_dispatch:
+    inputs:
+      handle:
+        description: "用哪个账号探测（必须在 accounts.yaml 里）"
+        required: false
+        default: "re_re_tsubame"
+      limit:
+        description: "真抓时每个账号最多取几条"
+        required: false
+        default: "5"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/probe-nitter.yml"
+      - "scripts/probe_instances.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-nitter
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      HANDLE: ${{ inputs.handle || 're_re_tsubame' }}
+      LIMIT: ${{ inputs.limit || '5' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 探针只用标准库，装不装依赖都能跑；这里装是因为第 3 步要跑真抓。
+      - name: 1) 探针 · 候选名单（14 个）
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python scripts/probe_instances.py \
+            --from-candidates --handle "$HANDLE" \
+            --timeout 15 --workers 8 --json candidates.json 2>&1 | tee probe_candidates.log
+
+      - name: 2) 探针 · 现役 endpoints（13 个）
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python scripts/probe_instances.py \
+            --handle "$HANDLE" \
+            --timeout 15 --workers 8 --json endpoints.json 2>&1 | tee probe_endpoints.log
+
+      # 把第一个 rss=ok 的实例顶到 endpoints 第一位，其余保留为 fallback。
+      # 这样真抓不会先在一个死实例上白等 13 次超时。
+      - name: 3) 选出可用实例并改 config
+        id: pick
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, re, sys
+
+          rows = []
+          for name in ("candidates.json", "endpoints.json"):
+              p = pathlib.Path(name)
+              if p.exists():
+                  rows += json.loads(p.read_text(encoding="utf-8"))
+
+          seen, uniq = set(), []
+          for r in rows:
+              if r["host"] not in seen:
+                  seen.add(r["host"])
+                  uniq.append(r)
+
+          ok = [r for r in uniq if r["rss_verdict"] == "ok"]
+          ok.sort(key=lambda r: -r["rss_items"])
+          print(f"rss=ok: {len(ok)}/{len(uniq)}")
+
+          out = pathlib.Path(os.environ["GITHUB_OUTPUT"])
+          if not ok:
+              with out.open("a", encoding="utf-8") as fh:
+                  fh.write("host=\n")
+              print("没有可用实例，跳过真抓。")
+              sys.exit(0)
+
+          best = ok[0]["host"]
+          print(f"选中最优：{best}（{ok[0]['rss_items']} 条）")
+          with out.open("a", encoding="utf-8") as fh:
+              fh.write(f"host={best}\n")
+
+          cfg = pathlib.Path("config/config.yaml")
+          text = cfg.read_text(encoding="utf-8")
+          hosts = [r["host"] for r in ok] + [
+              r["host"] for r in uniq if r["rss_verdict"] != "ok"
+          ]
+          block = "    endpoints:\n" + "".join(f"      - {h}\n" for h in hosts)
+          new, n = re.subn(
+              r"    endpoints:\n(?:      - \S+\n)+", block, text, count=1
+          )
+          cfg.write_text(new, encoding="utf-8")
+          print(f"config.yaml 的 endpoints 已重写（{n} 处），共 {len(hosts)} 个")
+          PY
+
+      - name: 4) 真抓 · 走完整链路
+        id: crawl
+        if: steps.pick.outputs.host != ''
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python main.py \
+            --account "$HANDLE" --limit "$LIMIT" \
+            --no-rss --no-youtube --json \
+            --data-dir /tmp/xr 2>&1 | tee crawl.log
+
+      - name: 5) 落了什么
+        if: always()
+        run: |
+          echo "### data/items 新增行数" >> "$GITHUB_STEP_SUMMARY"
+          if [ -d /tmp/xr ]; then
+            find /tmp/xr -type f | sort >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            find /tmp/xr -name '*.jsonl' -exec wc -l {} + >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "没有 /tmp/xr —— 真抓没跑起来。" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 6) 汇总到 job summary
+        if: always()
+        run: |
+          {
+            echo "## probe-nitter"
+            echo
+            echo "账号 \`$HANDLE\` ｜ 超时 15s ｜ runner 出口：直连无代理"
+            echo
+            echo "### 候选名单"
+            echo '```'
+            cat probe_candidates.log 2>/dev/null || echo "没跑"
+            echo '```'
+            echo "### 现役 endpoints"
+            echo '```'
+            cat probe_endpoints.log 2>/dev/null || echo "没跑"
+            echo '```'
+            echo "### 真抓结果"
+            echo '```'
+            cat crawl.log 2>/dev/null || echo "没跑（没有 rss=ok 的实例）"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-nitter
+          path: |
+            candidates.json
+            endpoints.json
+            crawl.log
+            probe_candidates.log
+            probe_endpoints.log
+          if-no-files-found: ignore
+          retention-days: 7
