@@ -47,6 +47,35 @@ provider:
       - rss
       - html
 
+    # 待测名单：**运行时不读这一段**，只有 `scripts/probe_instances.py
+    # --from-candidates` 会用它。
+    #
+    # 为什么不直接加进 endpoints：每个死实例都要付一次超时，而抓取是
+    # 「账号 × 实例」的双层循环，20 个账号 × 3 个死实例就是二十分钟白等。
+    # 所以先测、再进 endpoints。
+    #
+    # 2026-10-27 在开发机上测过一轮：这 14 个全部在代理 CONNECT 阶段就 502，
+    # 同一轮里现役的 nitter.meowing.monster 也不可达 —— 说明那是**那台机器的
+    # 出口限制**，不是实例死亡。换机器（本机直连 / GitHub Actions）重测才算数。
+    # 唯一可达的是 goyimx.com：RSS 200、20 条、标准 RSS 2.0，但它是 Teapot
+    # 分支（HTML 路由 418、t.co 链接被改写成本站路径、标题带 "Pinned:"），
+    # 要用得先改解析器的 link 归一化。
+    candidates:
+      - https://nitter.jaydenha.uk
+      - https://nitter.netbub.com
+      - https://nitter.kareem.one
+      - https://shi.meowing.monster
+      - https://x.n0g.xyz
+      - https://tw.eir-nya.gay
+      - https://shi.meowing.de
+      - https://nitter.pp.ua
+      - https://shitter.thepixora.com
+      - https://nitter.click
+      - https://nitter.space
+      - https://goyimx.com
+      - https://nitter.cf
+      - https://xnologin.com
+
   xtf:
     enabled: true
     # Empty means: reuse provider.nitter.endpoints (single source of truth).
