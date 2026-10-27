@@ -20,13 +20,32 @@ provider:
     # whitespace-stripped during validation.
     #
     # Order matters for wall-clock time, not for correctness: every dead
-    # instance costs one timeout before the loop moves on. On 2026-10-26 the
-    # 13-instance list was probed for /re_re_tsubame/rss and only one returned
-    # a real feed — the rest answered 410 (gone), 451 (legal block), 403, or a
-    # 200 carrying an anti-bot interstitial. So the one live instance goes
-    # first and the rest stay as fallbacks for when it dies.
+    # instance costs one timeout before the loop moves on.
+    #
+    # 2026-10-27 用 GitHub Actions 的 runner（Azure northcentralus，直连无代理）
+    # 实测了 13 个现役 + 14 个候选，`/re_re_tsubame/rss`：
+    #
+    #   现役 2/13 可用
+    #     nitter.meowing.monster   rss ok  20 条 47 KB   html challenge
+    #     nitter.jaydenha.uk       rss ok  20 条 47 KB   html ok 96 KB
+    #   候选 1/14 可用
+    #     nitter.cf                rss ok  21 条 37 KB   html ok 119 KB
+    #                              （301 到 xitter.cf，httpx 自动跟随）
+    #
+    # 其余失败形态：challenge（200 但正文是验证页，9 个）、unreachable、
+    # http-404/410/451、以及 goyimx.com 的 not-feed（21 KB 拦截页）。
+    #
+    # **本机结论不可信**：开发机上这 27 个全部在代理 CONNECT 阶段 502，
+    # 连 meowing.monster 也打不开 —— 那是出口限制，不是实例死亡。
+    # 判断实例死活只能看 CI 日志：`probe-nitter` 工作流。
     endpoints:
+      # 两个 rss + html 双通的最稳，放最前
       - https://nitter.meowing.monster
+      - https://nitter.jaydenha.uk
+      # 新发现的候选，21 条（比上面两个还多一条），301 到 xitter.cf
+      - https://nitter.cf
+      # 以下按 2026-10-27 实测全部不可用，留作 fallback：实例会复活，
+      # 而重排一次只要改这一处
       - https://nitter.tiekoetter.com
       - https://xcancel.com
       - https://nitter.privacyredirect.com
@@ -36,7 +55,6 @@ provider:
       - https://nitter.privacydev.net
       - https://nuku.trabun.org
       - https://nitter.xitter.cc
-      - https://nitter.jaydenha.uk
       - https://x.n0g.xyz
       - https://tw.eir-nya.gay
 
