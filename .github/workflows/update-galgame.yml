@@ -48,7 +48,7 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    # 177 个账号按实测 3.9 s/账号约 11.5 分钟，留一倍余量。
+    # 179 个账号按实测 3.9 s/账号约 11.6 分钟，留一倍余量。
     timeout-minutes: 20
 
     steps:
