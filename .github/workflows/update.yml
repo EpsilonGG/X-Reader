@@ -87,7 +87,12 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 2026-10-29 起声优版 = 声优 + 音声社团，237 个账号（原来 302 个跑 19.6 分钟，
+    # 其中约 2 分钟是装依赖与跑测试）。按 3.5 s/账号估，抓取约 13.8 分钟，
+    # 加上前后开销贴着 20 分钟线——所以放到 30 分钟，别让它每天红一次。
+    # 另一半（Galgame 版，177 个账号）在 update-galgame.yml，走自己的
+    # accounts.galgame.yaml 与 data-galgame/，不占用这个 job 的时间。
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
