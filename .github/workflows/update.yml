@@ -57,22 +57,27 @@ on:
         default: false
 
   schedule:
-    # 12:00 UTC daily = 20:00 北京时间（东八区晚八点）。
-    # Twice a day, on the two boundaries that matter for a JST daily report.
+    # 两个时点，都写在「非整点」的 :05（见下面第 3 条）。
     #
-    #   03:00 UTC = 12:00 JST  — the morning half of the JST day
-    #   15:00 UTC = 00:00 JST  — the JST day has just closed; this is the run
-    #                            the report generator waits for
+    #   04:05 UTC = 13:05 JST = 12:05 北京时间 — JST 一天的前半段
+    #   15:05 UTC = 00:05 JST = 23:05 北京时间 — JST 这一天刚闭合，
+    #                                            出稿（北京时间 23:40）等的是这一趟
     #
-    # Two runs, not one, because Nitter's RSS route returns at most ~20 items
-    # per account. A single daily run at midnight would silently drop the
-    # oldest tweets of anyone who posted more than 20 times that day. Splitting
-    # the day in half keeps each window well under the cap.
+    # 为什么是两跑而不是一跑：Nitter 的 RSS 每条账号最多返回约 20 条，
+    # 一天只跑一次会静默丢掉发得多的人最早那几条。切两半之后每个窗口
+    # 都远低于上限。两跑间隔 11 小时，仍然安全。
     #
-    # GitHub's scheduler is not exact: a run may start 5–30 minutes late under
-    # load. That is harmless here — the store is append-only and the report
-    # filters by JST calendar day afterwards.
-    - cron: "0 3,15 * * *"
+    # 为什么从整点挪到 :05：
+    #   1. 2026-11-01 起要求「JST 00:00 刚闭合就抓」，晚 5 分钟能让最后
+    #      一分钟发的推文进入 nitter 的索引，不至于卡在边界上。
+    #   2. 出稿在 23:40，:05 开跑留出 35 分钟余量。
+    #   3. GitHub 文档写明「整点是高负载时段，schedule 会被延迟，负载够高
+    #      时甚至丢弃」；2026-10-26 ~ 11-01 的 12 次定时运行实测**全部晚
+    #      4.2–6.9 小时**（job 本身只要 3–19 分钟），而那些 cron 全写在
+    #      整点。挪到 :05 是实验：看偏离整点能不能把排队压下来。
+    #      如果实测仍然晚几小时，就不要指望 cron——改用 workflow_dispatch
+    #      （站点仓库的 scripts/trigger_fetch.py 走的就是这条）。
+    - cron: "5 4,15 * * *"
 
 # Needed to push the updated data back to the repository.
 permissions:
