@@ -8,9 +8,11 @@
 #
 # This file is the VOICE edition: 声优 + 音声社团. The Galgame edition (制造商 + 信息号) is accounts.galgame.yaml.
 #
-# Only entries with `active != false` are written, in roster order. The roster's
-# `category` field is *not* a filter here: it decides which column an entry shows
-# up in on the site, and the daily page's filter buttons separate the columns.
+# Only entries with `active != false` AND `source` absent / "x" are written, in
+# roster order. Non-X sources (e.g. `source=bilibili`, handle `bili_<uid>`) are
+# fetched by their own scraper and must never be looked up as X usernames.
+# The roster's `category` field is *not* a filter here: it decides which column an
+# entry shows up in on the site, and the daily page's filter buttons separate them.
 #
 # 名单里每个 handle 的 role（main / sub / announce / circle / brand / info）不写进
 # 这个文件——抓取侧不关心它是主号还是小号，抓全就行；role 只在站点侧决定展示顺序。
@@ -35,10 +37,10 @@ accounts:
   - username: mimoriaino
   - username: melty_honey_pot
   - username: harurupanda0827
-  - username: ryonarab
   - username: shiho_moai
   - username: __amachi
   - username: 322yui3
+  - username: yui_RP32
   - username: ayakaigasaki
   - username: ayakaigasaki69
   - username: gemiko_voice
@@ -265,3 +267,4 @@ accounts:
   - username: C_Little_Oasis
   - username: ogami_nt
   - username: momojiri_nyugyo
+  - username: ichinoya_info

@@ -8,9 +8,11 @@
 #
 # This file is the GALGAME edition: 游戏制造商 + 信息号. The voice edition (声优 + 音声社团) is accounts.yaml.
 #
-# Only entries with `active != false` are written, in roster order. The roster's
-# `category` field is *not* a filter here: it decides which column an entry shows
-# up in on the site, and the daily page's filter buttons separate the columns.
+# Only entries with `active != false` AND `source` absent / "x" are written, in
+# roster order. Non-X sources (e.g. `source=bilibili`, handle `bili_<uid>`) are
+# fetched by their own scraper and must never be looked up as X usernames.
+# The roster's `category` field is *not* a filter here: it decides which column an
+# entry shows up in on the site, and the daily page's filter buttons separate them.
 #
 # 名单里每个 handle 的 role（main / sub / announce / circle / brand / info）不写进
 # 这个文件——抓取侧不关心它是主号还是小号，抓全就行；role 只在站点侧决定展示顺序。
@@ -75,6 +77,7 @@ accounts:
   - username: pakopakosoft2nd
   - username: web_marmalade
   - username: Amuse_sub
+  - username: stealcatAC
   - username: confiture_soft
   - username: luneman_etc
   - username: KISSonlineKISS
@@ -120,6 +123,7 @@ accounts:
   - username: yuzusoft
   - username: Studio_Ubai
   - username: jitaku_st
+  - username: jita_gf
   - username: AQUAPLUS_JP
   - username: project_citrus
   - username: Cuteuphoria
@@ -201,3 +205,18 @@ accounts:
   - username: bugbug_info
   - username: hiro_in
   - username: AKOUtw
+  - username: alice_net_pc
+  - username: trader_R18
+  - username: masanlive
+  - username: DLsite
+  - username: moeaward
+  - username: CNexton
+  - username: dengekionline
+  - username: 4GamerNews
+  - username: AUTOMATONJapan
+  - username: akibablog
+  - username: douzinr18
+  - username: erogeAreAlive
+  - username: Nooksite
+  - username: BishoujoNEWS
+  - username: cloud668
